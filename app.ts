@@ -2,6 +2,7 @@ class Student{
     private name:string;
     private ID:string;
     public phone:string;
+    private readonly sex:string;
     constructor(name:string,ID:string , phone:string ){
         this.name = name ;
         this.ID = ID;
