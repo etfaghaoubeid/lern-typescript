@@ -23,6 +23,9 @@ class Person {
     getSex() {
         return this.sex;
     }
+    info() {
+        console.log("info methode");
+    }
 }
 class Employee extends Person {
     constructor(name, age, sex, salary) {
@@ -31,5 +34,8 @@ class Employee extends Person {
         this.salary = salary;
     }
 }
+Employee.static_property = "static";
 let am = new Employee("ahmed", 24, "M", 340000);
 console.log("Employee class", am);
+am.info();
+console.log("static", Employee.static_property);
