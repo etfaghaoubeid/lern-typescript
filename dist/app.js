@@ -1,30 +1,31 @@
 "use strict";
-var Student = /** @class */ (function () {
-    function Student(name, ID) {
+class Student {
+    constructor(name, ID, phone) {
         this.name = name;
+        this.ID = ID;
+        this.phone = phone;
+    }
+    getID() {
+        return this.ID;
+    }
+    setID(ID) {
         this.ID = ID;
     }
-    Student.prototype.getID = function () {
-        return this.ID;
-    };
-    Student.prototype.setID = function (ID) {
-        this.ID = ID;
-    };
-    Student.prototype.getName = function () {
+    getName() {
         return this.name;
-    };
-    Student.prototype.setName = function (name) {
+    }
+    setName(name) {
         this.name = name;
-    };
-    return Student;
-}());
-var s1 = new Student("ahemd", "2");
-var getNameValue = s1.getName();
+    }
+}
+let s1 = new Student("ahemd", "2", "27525511");
+let getNameValue = s1.getName();
 console.log("getName value", getNameValue);
 console.log("object instance ", s1.getID(), s1.getName());
-var student = {
+let student = {
     name: s1.getName(),
     getName: s1.getName
 };
-var r = student.getName();
+let r = student.getName();
 console.log(r);
+s1.phone = "33635471";
