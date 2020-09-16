@@ -1,3 +1,13 @@
+interface AddFn {
+    (n:number , m:number):number;
+}
+let add :AddFn
+add=(n:number, m:number)=>{
+    return n+m;
+}
+
+console.log("functions type",add(3,5))
+
 class Student{
     private name:string;
     private ID:string;

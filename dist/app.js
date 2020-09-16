@@ -1,4 +1,9 @@
 "use strict";
+let add;
+add = (n, m) => {
+    return n + m;
+};
+console.log("functions type", add(3, 5));
 class Student {
     constructor(name, ID, phone) {
         this.name = name;
