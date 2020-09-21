@@ -11,3 +11,7 @@ function makeState<S>(){
         setState
     }
 }
+let promise:Promise<string> = new Promise((resolve , reject)=>{
+    setTimeout:void(resolve('promise resolved'), 1000)
+})
+promise.then(data=>console.log(data))
