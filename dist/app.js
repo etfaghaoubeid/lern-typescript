@@ -1,36 +1,15 @@
 "use strict";
-let add;
-add = (n, m) => {
-    return n + m;
-};
-console.log("functions type", add(3, 5));
-class Student {
-    constructor(name, ID, phone) {
-        this.name = name;
-        this.ID = ID;
-        this.phone = phone;
-    }
-    getID() {
-        return this.ID;
-    }
-    setID(ID) {
-        this.ID = ID;
-    }
-    getName() {
-        return this.name;
-    }
-    setName(name) {
-        this.name = name;
-    }
+// init generic
+let promise = new Promise((resolve, reject) => {
+    setTimeout(resolve('promise resolved'), 1000);
+});
+promise.then(data => {
+    console.log(data);
+});
+function mergeObj(obj1, obj2) {
+    return Object.assign(obj1, obj2);
 }
-let s1 = new Student("ahemd", "2", "27525511");
-let getNameValue = s1.getName();
-console.log("getName value", getNameValue);
-console.log("object instance ", s1.getID(), s1.getName());
-let student = {
-    name: s1.getName(),
-    getName: s1.getName
-};
-let r = student.getName();
+let r = mergeObj({ namee: "atigh", position: "developer" }, { name: "Mouvid" });
 console.log(r);
-s1.phone = "33635471";
+function join(param1) {
+}
