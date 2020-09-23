@@ -19,3 +19,25 @@ class Person {
         this.name = name;
     }
 };
+function PropertyDecorator(target:any , propertyName:string){
+    console.log( target, propertyName)
+}
+function ParameterDecorator(target:any , name:string, position:any){
+    console.log("parameter decorator");
+    console.log("target",target)
+    console.log("name",name); 
+    console.log("position",position);
+}
+
+class Product {
+    private name: string ;
+    @PropertyDecorator
+    private price:number;
+    constructor(name:string, price:number){
+        this.name = name;
+        this.price = price
+    }
+    getPriceWithTax( @ParameterDecorator tax:number){
+        return this.price +(this.price*tax)
+    }
+}
