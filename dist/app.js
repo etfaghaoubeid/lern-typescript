@@ -55,3 +55,18 @@ __decorate([
 __decorate([
     __param(0, ParameterDecorator)
 ], Product.prototype, "getPriceWithTax", null);
+function decoratorBinder(target, name) {
+}
+class Printer {
+    constructor() {
+        this.message = "hello ";
+    }
+    showMessage() {
+        console.log(this.message);
+    }
+}
+let p = new Printer();
+let ele = document.getElementById("clickme");
+if (ele) {
+    ele.addEventListener('click', p.showMessage.bind(p));
+}

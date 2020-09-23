@@ -41,3 +41,25 @@ class Product {
         return this.price +(this.price*tax)
     }
 }
+function decoratorBinder(target:any , name:string ){
+
+
+}
+
+class Printer {
+    message:string = "hello "
+
+    constructor(){
+
+    } 
+    showMessage(){
+        console.log(this.message)
+    }
+}
+
+let p :Printer = new Printer();
+let ele =document.getElementById("clickme") as HTMLButtonElement;
+if(ele){
+    ele.addEventListener('click', p.showMessage.bind(p))
+
+}
