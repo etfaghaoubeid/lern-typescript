@@ -1,1 +1,1 @@
-# lern-typescript 
+# typescript 
