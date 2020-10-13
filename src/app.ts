@@ -6,6 +6,15 @@ interface Validatable {
   max?: number;
   min?: number;
 }
+interface Draggeble {
+  dragStartHandler(event: DragEvent): void;
+  dragEndHandler(event: DragEvent): void;
+}
+interface DragTarget {
+  dragOverHandler(event: DragEvent): void;
+  dropHandler(event: DragEvent): void;
+  dragLeaveHandler(event: DragEvent): void;
+}
 function autoBindThis(
   target: any,
   methodName: string,
@@ -45,8 +54,7 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
   templateElement: HTMLTemplateElement;
   hostElement: T;
   element: U;
-  insertAtBeginning: boolean;
-  elementId?: string;
+
   constructor(
     templateElementId: string,
     hostElementId: string,
@@ -62,9 +70,8 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
       true
     );
     this.element = importedNode.firstElementChild as U;
-    this.insertAtBeginning = insertAtBeginning;
     if (elementId) {
-      this.elementId = elementId;
+      this.element.id = elementId;
     }
 
     this.attach(insertAtBeginning);
@@ -81,11 +88,11 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
 }
 class Project {
   constructor(
-    private id: string,
-    private title: string,
-    private description: string,
-    private people: number,
-    private status: ProjectStatus
+    public id: string,
+    public title: string,
+    public description: string,
+    public people: number,
+    public status: ProjectStatus
   ) {
     this.id = id;
     this.title = title;
@@ -124,12 +131,53 @@ class Project {
     this.status = status;
   }
 }
-type Listner = (itmes: Project[]) => void;
-class ProjectState {
+type Listner<T> = (itmes: T[]) => void;
+class State<T> {
+  protected listners: Listner<T>[] = [];
+  addListner(listnerFunction: Listner<T>): void {
+    this.listners.push(listnerFunction);
+  }
+}
+class ProjectItem
+  extends Component<HTMLUListElement, HTMLLIElement>
+  implements Draggeble {
+  constructor(hostId: string, public project: Project) {
+    super("single-project", hostId, false, project.id);
+    this.project = project;
+    this.configure();
+    this.renderContent();
+  }
+  @autoBindThis
+  dragStartHandler(event: DragEvent): void {
+    event.dataTransfer!.setData("text/plain", this.project.id);
+    event.dataTransfer!.effectAllowed = "move";
+    console.log(this);
+  }
+  @autoBindThis
+  dragEndHandler(event: DragEvent): void {}
+  get persons() {
+    if (this.project.people == 1) {
+      return "1 Person  assigned";
+    }
+    return `${this.project.people} assigned`;
+  }
+  configure(): void {
+    this.element.addEventListener("dragstart", this.dragStartHandler);
+    this.element.addEventListener("dragend", this.dragEndHandler);
+  }
+  renderContent(): void {
+    this.element.querySelector("h2")!.textContent = this.project.title;
+    this.element.querySelector("h3")!.textContent = "People: " + this.persons;
+    this.element.querySelector("p")!.textContent = this.project.description;
+  }
+}
+class ProjectState extends State<Project> {
   private projects: Project[] = [];
-  private listners: Listner[] = [];
+
   private static instance: ProjectState;
-  private constructor() {}
+  private constructor() {
+    super();
+  }
   static getInstance() {
     if (this.instance) {
       return this.instance;
@@ -146,51 +194,82 @@ class ProjectState {
       ProjectStatus.Active
     );
     this.projects.push(newProject);
+    this.updateListner();
+  }
+  removeProject(projectId: string, updatedStaus: ProjectStatus) {
+    let project = this.projects.find((prj) => prj.id === projectId);
+    if (project) {
+      project.status = updatedStaus;
+      this.updateListner();
+    }
+  }
+  updateListner() {
     for (let listnerFn of this.listners) {
       listnerFn(this.projects.slice());
     }
   }
-  addListner(listnerFunction: Listner): void {
-    this.listners.push(listnerFunction);
-  }
 }
 const projectState = ProjectState.getInstance();
 
-class ProjectList extends Component<HTMLDivElement, HTMLElement> {
+class ProjectList
+  extends Component<HTMLDivElement, HTMLElement>
+  implements DragTarget {
   assignedProject: Project[] = [];
   constructor(private type: "active" | "finished") {
     super("project-list", "app", false, `${type}-projects`);
+    this.assignedProject = [];
     this.configure();
     this.renderContent();
+  }
+  @autoBindThis
+  dragOverHandler(event: DragEvent): void {
+    if (event.dataTransfer && event.dataTransfer.types[0]) {
+      event.preventDefault();
+      let ulElement = this.element.querySelector("ul");
+      ulElement?.classList.add("droppable");
+    }
+  }
+  @autoBindThis
+  dropHandler(event: DragEvent): void {
+    let projectId = event.dataTransfer!.getData("text/plain");
+    projectState.removeProject(
+      projectId,
+      this.type === "active" ? ProjectStatus.Active : ProjectStatus.Finished
+    );
+  }
+  @autoBindThis
+  dragLeaveHandler(event: DragEvent): void {
+    this.element.querySelector("ul")?.classList.remove("droppable");
   }
   renderProject() {
     let element = document.getElementById(
       `${this.type}-project-list`
     )! as HTMLUListElement;
-    console.log(element);
     element.innerHTML = "";
     for (let project of this.assignedProject) {
-      let projectitem = document.createElement("li");
-      projectitem.style.listStyle = "none";
-      projectitem.textContent = project.title!;
-      element.appendChild(projectitem);
+      let projectItem = new ProjectItem(
+        this.element.querySelector("ul")!.id,
+        project
+      );
+      //projectItem.style.listStyle = "none";
     }
   }
   renderContent() {
     let id = `${this.type}-project-list`;
     this.element.querySelector("ul")!.id = id;
-    this.element.querySelector(
-      "h2"
-    )!.textContent = `${this.type} Projects`.toUpperCase();
+    this.element.querySelector("h2")!.textContent =
+      this.type.toUpperCase() + " PROJECTS";
   }
   configure(): void {
+    this.element.addEventListener("drop", this.dropHandler);
+    this.element.addEventListener("dragover", this.dragOverHandler);
+    this.element.addEventListener("dragleave", this.dragLeaveHandler);
     projectState.addListner((projects: Project[]) => {
       let releventProject = projects.filter((prj) => {
         if (this.type === "active") {
-          return prj.getStatus() === ProjectStatus.Active;
-        } else {
-          return prj.getStatus() === ProjectStatus.Finished;
+          return prj.status === ProjectStatus.Active;
         }
+        return prj.status === ProjectStatus.Finished;
       });
 
       this.assignedProject = releventProject;
@@ -204,7 +283,7 @@ class ProjectInput extends Component<HTMLDivElement, HTMLTemplateElement> {
   peopleInputElement: HTMLInputElement;
 
   constructor() {
-    super("project-input", "app", true, "project-input");
+    super("project-input", "app", true, "user-input");
     this.titleInputElement = this.element.querySelector(
       "#title"
     ) as HTMLInputElement;
@@ -228,7 +307,7 @@ class ProjectInput extends Component<HTMLDivElement, HTMLTemplateElement> {
     }
   }
   private clearInputs(): void {
-    document.getElementById("title")!.value! = "";
+    document.getElementById("title")!.value = "";
     document.getElementById("description")!.value = "";
     document.getElementById("people")!.value = "";
     return;
